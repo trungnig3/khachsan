@@ -1,0 +1,6 @@
+{
+  "name": "Aura Grand - Quản Lý Khách Sạn & Đặt Phòng Trực Tuyến",
+  "description": "Hệ thống quản lý khách sạn và đặt phòng cao cấp chuẩn 5 sao với Dashboard SaaS quản trị, Booking Engine, Check-in/Check-out, Hóa đơn và REST API Spring Boot.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

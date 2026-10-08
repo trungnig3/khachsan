@@ -1,0 +1,241 @@
+-- ========================================================
+-- DATABASE SCHEMA: AURA GRAND LUXURY HOTEL MANAGEMENT
+-- Database Engine: MySQL 8.0+
+-- Encoding: UTF8MB4 / Collation: utf8mb4_unicode_ci
+-- ========================================================
+
+CREATE DATABASE IF NOT EXISTS hotel_management_db
+  CHARACTER SET utf8mb4
+  COLLATE utf8mb4_unicode_ci;
+
+USE hotel_management_db;
+
+-- 1. ROLES TABLE
+CREATE TABLE IF NOT EXISTS roles (
+  id BIGINT AUTO_INCREMENT PRIMARY KEY,
+  name VARCHAR(50) NOT NULL UNIQUE COMMENT 'ROLE_ADMIN, ROLE_STAFF, ROLE_CUSTOMER',
+  description VARCHAR(255),
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- 2. USERS TABLE
+CREATE TABLE IF NOT EXISTS users (
+  id BIGINT AUTO_INCREMENT PRIMARY KEY,
+  email VARCHAR(100) NOT NULL UNIQUE,
+  password VARCHAR(255) NOT NULL COMMENT 'BCrypt hashed password',
+  full_name VARCHAR(100) NOT NULL,
+  phone VARCHAR(20) NOT NULL,
+  address VARCHAR(255),
+  avatar_url VARCHAR(500),
+  status VARCHAR(20) DEFAULT 'ACTIVE' COMMENT 'ACTIVE, INACTIVE, BLOCKED',
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  INDEX idx_users_email (email),
+  INDEX idx_users_phone (phone)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- 3. USER_ROLES (Many-to-Many)
+CREATE TABLE IF NOT EXISTS user_roles (
+  user_id BIGINT NOT NULL,
+  role_id BIGINT NOT NULL,
+  PRIMARY KEY (user_id, role_id),
+  CONSTRAINT fk_user_roles_user FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE,
+  CONSTRAINT fk_user_roles_role FOREIGN KEY (role_id) REFERENCES roles (id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- 4. ROOM TYPES TABLE
+CREATE TABLE IF NOT EXISTS room_types (
+  id BIGINT AUTO_INCREMENT PRIMARY KEY,
+  code VARCHAR(50) NOT NULL UNIQUE COMMENT 'DLX-OCN, EXE-STE, PRS-STE, etc.',
+  name VARCHAR(100) NOT NULL,
+  description TEXT,
+  base_price DECIMAL(15, 2) NOT NULL,
+  max_guests INT NOT NULL DEFAULT 2,
+  area_sqm DOUBLE NOT NULL DEFAULT 35,
+  bed_type VARCHAR(100) NOT NULL,
+  image_url VARCHAR(500),
+  is_featured BOOLEAN DEFAULT FALSE,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  INDEX idx_room_types_code (code)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- 5. ROOMS TABLE
+CREATE TABLE IF NOT EXISTS rooms (
+  id BIGINT AUTO_INCREMENT PRIMARY KEY,
+  room_number VARCHAR(20) NOT NULL UNIQUE COMMENT '101, 201, 501, V-01',
+  room_type_id BIGINT NOT NULL,
+  floor INT NOT NULL DEFAULT 1,
+  price_per_night DECIMAL(15, 2) NOT NULL,
+  status VARCHAR(30) NOT NULL DEFAULT 'AVAILABLE' COMMENT 'AVAILABLE, OCCUPIED, RESERVED, MAINTENANCE, CLEANING',
+  cleanliness VARCHAR(30) NOT NULL DEFAULT 'CLEAN' COMMENT 'CLEAN, DIRTY, INSPECTED',
+  description VARCHAR(500),
+  image_url VARCHAR(500),
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  CONSTRAINT fk_rooms_room_type FOREIGN KEY (room_type_id) REFERENCES room_types (id) ON DELETE RESTRICT,
+  INDEX idx_rooms_number (room_number),
+  INDEX idx_rooms_status (status),
+  INDEX idx_rooms_floor (floor)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- 6. AMENITIES TABLE
+CREATE TABLE IF NOT EXISTS amenities (
+  id BIGINT AUTO_INCREMENT PRIMARY KEY,
+  name VARCHAR(100) NOT NULL,
+  category VARCHAR(50) DEFAULT 'GENERAL',
+  icon VARCHAR(50),
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- 7. ROOM_TYPE_AMENITIES (Many-to-Many)
+CREATE TABLE IF NOT EXISTS room_type_amenities (
+  room_type_id BIGINT NOT NULL,
+  amenity_id BIGINT NOT NULL,
+  PRIMARY KEY (room_type_id, amenity_id),
+  CONSTRAINT fk_rta_room_type FOREIGN KEY (room_type_id) REFERENCES room_types (id) ON DELETE CASCADE,
+  CONSTRAINT fk_rta_amenity FOREIGN KEY (amenity_id) REFERENCES amenities (id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- 8. HOTEL SERVICES TABLE
+CREATE TABLE IF NOT EXISTS services (
+  id BIGINT AUTO_INCREMENT PRIMARY KEY,
+  name VARCHAR(100) NOT NULL,
+  category VARCHAR(50) NOT NULL COMMENT 'DINING, WELLNESS, TRANSPORT, LAUNDRY, CONCIERGE',
+  description TEXT,
+  price DECIMAL(15, 2) NOT NULL,
+  unit VARCHAR(50) NOT NULL COMMENT 'lượt, người, chuyến, kg',
+  image_url VARCHAR(500),
+  is_available BOOLEAN DEFAULT TRUE,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- 9. PROMOTIONS TABLE
+CREATE TABLE IF NOT EXISTS promotions (
+  id BIGINT AUTO_INCREMENT PRIMARY KEY,
+  code VARCHAR(50) NOT NULL UNIQUE,
+  title VARCHAR(150) NOT NULL,
+  discount_type VARCHAR(20) NOT NULL COMMENT 'PERCENTAGE, FIXED',
+  discount_value DECIMAL(15, 2) NOT NULL,
+  min_order_value DECIMAL(15, 2) DEFAULT 0,
+  max_discount DECIMAL(15, 2),
+  start_date DATE NOT NULL,
+  end_date DATE NOT NULL,
+  usage_limit INT DEFAULT 100,
+  used_count INT DEFAULT 0,
+  is_active BOOLEAN DEFAULT TRUE,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  INDEX idx_promotions_code (code)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- 10. BOOKINGS TABLE
+CREATE TABLE IF NOT EXISTS bookings (
+  id BIGINT AUTO_INCREMENT PRIMARY KEY,
+  booking_code VARCHAR(50) NOT NULL UNIQUE COMMENT 'AG-YYYYMMDDXXX',
+  customer_id BIGINT,
+  customer_name VARCHAR(100) NOT NULL,
+  customer_email VARCHAR(100) NOT NULL,
+  customer_phone VARCHAR(20) NOT NULL,
+  room_id BIGINT NOT NULL,
+  check_in_date DATE NOT NULL,
+  check_out_date DATE NOT NULL,
+  nights INT NOT NULL,
+  num_guests INT NOT NULL DEFAULT 2,
+  room_price_per_night DECIMAL(15, 2) NOT NULL,
+  total_room_price DECIMAL(15, 2) NOT NULL,
+  services_total DECIMAL(15, 2) DEFAULT 0,
+  discount_amount DECIMAL(15, 2) DEFAULT 0,
+  tax_amount DECIMAL(15, 2) DEFAULT 0,
+  total_amount DECIMAL(15, 2) NOT NULL,
+  status VARCHAR(30) NOT NULL DEFAULT 'PENDING' COMMENT 'PENDING, CONFIRMED, CHECKED_IN, CHECKED_OUT, CANCELLED',
+  payment_status VARCHAR(30) NOT NULL DEFAULT 'UNPAID' COMMENT 'UNPAID, PARTIALLY_PAID, PAID, REFUNDED',
+  payment_method VARCHAR(50) DEFAULT 'BANK_TRANSFER' COMMENT 'CASH, BANK_TRANSFER, CREDIT_CARD, VNPAY',
+  special_requests TEXT,
+  checked_in_at TIMESTAMP NULL,
+  checked_out_at TIMESTAMP NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  CONSTRAINT fk_bookings_customer FOREIGN KEY (customer_id) REFERENCES users (id) ON DELETE SET NULL,
+  CONSTRAINT fk_bookings_room FOREIGN KEY (room_id) REFERENCES rooms (id) ON DELETE RESTRICT,
+  INDEX idx_bookings_code (booking_code),
+  INDEX idx_bookings_dates (room_id, check_in_date, check_out_date),
+  INDEX idx_bookings_status (status)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- 11. BOOKING_SERVICES (One-to-Many detail)
+CREATE TABLE IF NOT EXISTS booking_services (
+  id BIGINT AUTO_INCREMENT PRIMARY KEY,
+  booking_id BIGINT NOT NULL,
+  service_id BIGINT NOT NULL,
+  quantity INT NOT NULL DEFAULT 1,
+  unit_price DECIMAL(15, 2) NOT NULL,
+  total_price DECIMAL(15, 2) NOT NULL,
+  CONSTRAINT fk_bs_booking FOREIGN KEY (booking_id) REFERENCES bookings (id) ON DELETE CASCADE,
+  CONSTRAINT fk_bs_service FOREIGN KEY (service_id) REFERENCES services (id) ON DELETE RESTRICT
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- 12. INVOICES TABLE
+CREATE TABLE IF NOT EXISTS invoices (
+  id BIGINT AUTO_INCREMENT PRIMARY KEY,
+  invoice_code VARCHAR(50) NOT NULL UNIQUE COMMENT 'INV-YYYY-XXXX',
+  booking_id BIGINT NOT NULL,
+  customer_name VARCHAR(100) NOT NULL,
+  customer_email VARCHAR(100),
+  customer_phone VARCHAR(20),
+  room_charges DECIMAL(15, 2) NOT NULL,
+  service_charges DECIMAL(15, 2) DEFAULT 0,
+  discount_amount DECIMAL(15, 2) DEFAULT 0,
+  tax_amount DECIMAL(15, 2) DEFAULT 0,
+  total_amount DECIMAL(15, 2) NOT NULL,
+  paid_amount DECIMAL(15, 2) NOT NULL,
+  status VARCHAR(30) DEFAULT 'PAID' COMMENT 'PAID, UNPAID, PARTIAL',
+  payment_method VARCHAR(50),
+  issue_date DATE NOT NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT fk_invoices_booking FOREIGN KEY (booking_id) REFERENCES bookings (id) ON DELETE RESTRICT,
+  INDEX idx_invoices_code (invoice_code)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- 13. PAYMENTS TABLE
+CREATE TABLE IF NOT EXISTS payments (
+  id BIGINT AUTO_INCREMENT PRIMARY KEY,
+  transaction_ref VARCHAR(100) UNIQUE,
+  booking_id BIGINT NOT NULL,
+  invoice_id BIGINT,
+  amount DECIMAL(15, 2) NOT NULL,
+  payment_method VARCHAR(50) NOT NULL,
+  status VARCHAR(30) NOT NULL DEFAULT 'COMPLETED',
+  payment_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  notes VARCHAR(255),
+  CONSTRAINT fk_payments_booking FOREIGN KEY (booking_id) REFERENCES bookings (id) ON DELETE CASCADE,
+  CONSTRAINT fk_payments_invoice FOREIGN KEY (invoice_id) REFERENCES invoices (id) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- 14. REVIEWS TABLE
+CREATE TABLE IF NOT EXISTS reviews (
+  id BIGINT AUTO_INCREMENT PRIMARY KEY,
+  booking_id BIGINT,
+  customer_name VARCHAR(100) NOT NULL,
+  room_type_name VARCHAR(100),
+  rating INT NOT NULL CHECK (rating >= 1 AND rating <= 5),
+  comment TEXT NOT NULL,
+  review_date DATE NOT NULL,
+  is_approved BOOLEAN DEFAULT TRUE,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT fk_reviews_booking FOREIGN KEY (booking_id) REFERENCES bookings (id) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- 15. NOTIFICATIONS TABLE
+CREATE TABLE IF NOT EXISTS notifications (
+  id BIGINT AUTO_INCREMENT PRIMARY KEY,
+  user_id BIGINT,
+  title VARCHAR(150) NOT NULL,
+  message TEXT NOT NULL,
+  type VARCHAR(50) DEFAULT 'BOOKING',
+  is_read BOOLEAN DEFAULT FALSE,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT fk_notifications_user FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
