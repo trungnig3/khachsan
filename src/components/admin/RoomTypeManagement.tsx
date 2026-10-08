@@ -262,18 +262,30 @@ export const RoomTypeManagement: React.FC<RoomTypeManagementProps> = ({
 
               <div className="grid grid-cols-3 gap-3">
                 <div>
-                  <label className="block font-semibold text-[#475569] mb-1">
-                    Giá gốc (VNĐ/đêm) *
-                  </label>
+                  <div className="flex items-center justify-between mb-1">
+                    <label className="block font-semibold text-[#475569]">
+                      Giá gốc (VNĐ/đêm) *
+                    </label>
+                    <span className="font-mono text-[10px] font-bold text-[#D4AF37]">
+                      {basePrice > 0 ? `${basePrice.toLocaleString('vi-VN')} đ` : '0 đ'}
+                    </span>
+                  </div>
                   <input
                     type="number"
-                    min={500000}
-                    step={100000}
+                    min={0}
+                    step={1000}
                     value={basePrice}
-                    onChange={(e) => setBasePrice(Number(e.target.value))}
+                    onChange={(e) => setBasePrice(Math.max(0, Number(e.target.value)))}
                     required
+                    placeholder="Ví dụ: 50000"
                     className="w-full px-3 py-2 bg-[#F8FAFC] border border-[#CBD5E1] rounded-xl focus:outline-none focus:border-[#0F172A]"
                   />
+                  <div className="flex items-center gap-1 mt-1 text-[11px] text-[#64748B] flex-wrap">
+                    <span>Nhanh:</span>
+                    <button type="button" onClick={() => setBasePrice(50000)} className="px-1.5 py-0.5 bg-slate-100 hover:bg-slate-200 rounded font-mono text-[10px] cursor-pointer">50k</button>
+                    <button type="button" onClick={() => setBasePrice(500000)} className="px-1.5 py-0.5 bg-slate-100 hover:bg-slate-200 rounded font-mono text-[10px] cursor-pointer">500k</button>
+                    <button type="button" onClick={() => setBasePrice(1500000)} className="px-1.5 py-0.5 bg-slate-100 hover:bg-slate-200 rounded font-mono text-[10px] cursor-pointer">1.5M</button>
+                  </div>
                 </div>
 
                 <div>

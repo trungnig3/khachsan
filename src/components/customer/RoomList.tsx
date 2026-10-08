@@ -138,9 +138,9 @@ export const RoomList: React.FC<RoomListProps> = ({
               <span className="font-semibold text-[#475569] whitespace-nowrap">Mức giá tối đa:</span>
               <input
                 type="range"
-                min={1500000}
+                min={50000}
                 max={12000000}
-                step={500000}
+                step={50000}
                 value={maxPrice}
                 onChange={(e) => setMaxPrice(Number(e.target.value))}
                 className="w-40 sm:w-56 accent-[#D4AF37]"

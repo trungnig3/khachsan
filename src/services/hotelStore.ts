@@ -8,6 +8,7 @@ import {
   Room,
   RoomStatus,
   RoomType,
+  Role,
   User,
 } from '../types/hotel';
 
@@ -798,12 +799,16 @@ class HotelStore {
   private promotionsKey = 'auragrand_promotions_v1';
   private reviewsKey = 'auragrand_reviews_v1';
   private currentUserKey = 'auragrand_current_user_v1';
+  private usersKey = 'auragrand_users_v2';
 
   constructor() {
     this.initStorage();
   }
 
   private initStorage() {
+    if (!localStorage.getItem(this.usersKey)) {
+      localStorage.setItem(this.usersKey, JSON.stringify(DEMO_USERS));
+    }
     if (!localStorage.getItem(this.roomsKey)) {
       localStorage.setItem(this.roomsKey, JSON.stringify(INITIAL_ROOMS));
     }
@@ -898,6 +903,85 @@ class HotelStore {
   }
 
   // --- Auth & Users ---
+  getUsers(): User[] {
+    const raw = localStorage.getItem(this.usersKey);
+    if (!raw) {
+      localStorage.setItem(this.usersKey, JSON.stringify(DEMO_USERS));
+      return DEMO_USERS;
+    }
+    try {
+      return JSON.parse(raw);
+    } catch {
+      return DEMO_USERS;
+    }
+  }
+
+  saveUser(user: User): User {
+    const users = this.getUsers();
+    const index = users.findIndex(u => u.id === user.id);
+    if (index >= 0) {
+      users[index] = user;
+    } else {
+      users.push(user);
+    }
+    localStorage.setItem(this.usersKey, JSON.stringify(users));
+
+    // Update current user if it's the same person
+    const cur = this.getCurrentUser();
+    if (cur && cur.id === user.id) {
+      this.setCurrentUser(user);
+    }
+    return user;
+  }
+
+  updateUserRole(userId: number, newRole: Role): void {
+    const users = this.getUsers();
+    const user = users.find(u => u.id === userId);
+    if (user) {
+      user.role = newRole;
+      localStorage.setItem(this.usersKey, JSON.stringify(users));
+
+      const cur = this.getCurrentUser();
+      if (cur && cur.id === userId) {
+        this.setCurrentUser({ ...cur, role: newRole });
+      }
+    }
+  }
+
+  deleteUser(userId: number): boolean {
+    const users = this.getUsers();
+    // Do not delete main admin
+    if (userId === 1) return false;
+    const filtered = users.filter(u => u.id !== userId);
+    localStorage.setItem(this.usersKey, JSON.stringify(filtered));
+    return true;
+  }
+
+  registerCustomer(data: { fullName: string; email: string; phone: string; password?: string }): { success: boolean; user?: User; error?: string } {
+    const cleanEmail = data.email.trim().toLowerCase();
+    const users = this.getUsers();
+
+    if (users.some(u => u.email.toLowerCase() === cleanEmail)) {
+      return { success: false, error: 'Email này đã tồn tại trong hệ thống. Vui lòng đăng nhập hoặc sử dụng email khác.' };
+    }
+
+    const newUser: User = {
+      id: Date.now(),
+      fullName: data.fullName.trim(),
+      email: cleanEmail,
+      phone: data.phone.trim() || '0900000000',
+      role: 'ROLE_CUSTOMER',
+      avatar: `https://images.unsplash.com/photo-${1534528741775 + (users.length % 5)}?auto=format&fit=crop&w=200&q=80`,
+      createdAt: new Date().toISOString().slice(0, 10),
+    };
+
+    users.push(newUser);
+    localStorage.setItem(this.usersKey, JSON.stringify(users));
+    this.setCurrentUser(newUser);
+
+    return { success: true, user: newUser };
+  }
+
   getCurrentUser(): User | null {
     if (localStorage.getItem('auragrand_logged_out_v1') === 'true') {
       return null;
@@ -925,7 +1009,9 @@ class HotelStore {
   }
 
   login(email: string): User | null {
-    const user = DEMO_USERS.find(u => u.email.toLowerCase() === email.toLowerCase());
+    const clean = email.trim().toLowerCase();
+    const allUsers = this.getUsers();
+    const user = allUsers.find(u => u.email.toLowerCase() === clean) || DEMO_USERS.find(u => u.email.toLowerCase() === clean);
     if (user) {
       this.setCurrentUser(user);
       return user;
@@ -1436,6 +1522,7 @@ class HotelStore {
     localStorage.removeItem(this.invoicesKey);
     localStorage.removeItem(this.promotionsKey);
     localStorage.removeItem(this.reviewsKey);
+    localStorage.removeItem(this.usersKey);
     this.initStorage();
   }
 }

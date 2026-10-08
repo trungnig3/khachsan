@@ -21,6 +21,7 @@ function MainApp() {
   const [currentView, setCurrentView] = useState<'customer' | 'admin' | 'my-bookings'>('customer');
   const [currentUser, setCurrentUser] = useState<User | null>(() => hotelStore.getCurrentUser());
   const [loginModalOpen, setLoginModalOpen] = useState(false);
+  const [loginModalMode, setLoginModalMode] = useState<'login' | 'register'>('login');
 
   // Search parameters from Hero banner
   const [checkInDate, setCheckInDate] = useState<string>(new Date().toISOString().slice(0, 10));
@@ -89,7 +90,14 @@ function MainApp() {
               setBookingModalRoom(rooms[0]);
             }
           }}
-          onOpenLoginModal={() => setLoginModalOpen(true)}
+          onOpenLoginModal={() => {
+            setLoginModalMode('login');
+            setLoginModalOpen(true);
+          }}
+          onOpenRegisterModal={() => {
+            setLoginModalMode('register');
+            setLoginModalOpen(true);
+          }}
           onLogout={handleLogout}
         />
       )}
@@ -147,8 +155,18 @@ function MainApp() {
               const inv = hotelStore.getInvoices().find(i => i.bookingId === b.id) || hotelStore.createInvoiceFromBooking(b);
               setViewInvoiceModal(inv);
             }}
+            onNavigateSection={(sec) => {
+              setCurrentView('customer');
+              setTimeout(() => {
+                const el = document.getElementById(sec);
+                if (el) el.scrollIntoView({ behavior: 'smooth' });
+              }, 120);
+            }}
             onLogout={handleLogout}
-            onOpenLoginModal={() => setLoginModalOpen(true)}
+            onOpenLoginModal={() => {
+              setLoginModalMode('login');
+              setLoginModalOpen(true);
+            }}
           />
           <Footer />
         </main>
@@ -278,6 +296,7 @@ function MainApp() {
       {/* System Login Modal */}
       <LoginModal
         isOpen={loginModalOpen}
+        initialMode={loginModalMode}
         onClose={() => setLoginModalOpen(false)}
         onLoginSuccess={handleLoginSuccess}
       />

@@ -18,7 +18,9 @@ import {
   Menu,
   X,
   Crown,
-  LogOut
+  LogOut,
+  Users,
+  ShieldCheck
 } from 'lucide-react';
 import { Booking, DashboardStats, HotelService, Invoice, Promotion, Review, Room, RoomType, User } from '../../types/hotel';
 import { AdminDashboardOverview } from './AdminDashboardOverview';
@@ -30,6 +32,7 @@ import { ServiceManagement } from './ServiceManagement';
 import { InvoiceManagement } from './InvoiceManagement';
 import { PromotionManagement } from './PromotionManagement';
 import { ReviewManagement } from './ReviewManagement';
+import { UserManagement } from './UserManagement';
 import { hotelStore } from '../../services/hotelStore';
 import { useToast } from '../ui/Toast';
 
@@ -64,6 +67,7 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({
   const invoices = hotelStore.getInvoices();
   const promotions = hotelStore.getPromotions();
   const reviews = hotelStore.getReviews();
+  const users = hotelStore.getUsers();
   const stats = hotelStore.getDashboardStats();
 
   const handleResetData = () => {
@@ -84,6 +88,7 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({
     { id: 'invoices', label: 'Hóa Đơn & Thu Ngân', icon: FileText, count: invoices.length },
     { id: 'promotions', label: 'Khuyến Mãi & Voucher', icon: Tag, count: promotions.length },
     { id: 'reviews', label: 'Đánh Giá Khách Hàng', icon: Star, count: reviews.length },
+    { id: 'users', label: 'Tài Khoản & Phân Quyền', icon: Users, count: users.length },
   ];
 
   return (
@@ -269,6 +274,26 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({
 
         {/* Viewport Content */}
         <div className="p-6 sm:p-8 flex-1">
+          {/* Role Access Banner for Staff */}
+          {currentUser.role === 'ROLE_STAFF' && (
+            <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-2xl flex items-center justify-between text-xs text-blue-900 gap-3">
+              <div className="flex items-center gap-2.5">
+                <div className="w-8 h-8 rounded-lg bg-blue-600 text-white flex items-center justify-center shrink-0">
+                  <ShieldCheck className="w-4 h-4" />
+                </div>
+                <div>
+                  <span className="font-bold block">Đang đăng nhập quyền: NHÂN VIÊN LỄ TÂN (ROLE_STAFF)</span>
+                  <span className="text-[11px] text-blue-700">
+                    Bạn có quyền thực hiện tiếp nhận khách, Check-in / Check-out, cập nhật tình trạng dọn dẹp buồng phòng và xuất hóa đơn thanh toán.
+                  </span>
+                </div>
+              </div>
+              <span className="hidden md:inline-block px-2.5 py-1 bg-blue-100 text-blue-800 rounded-full font-bold text-[10px]">
+                Quyền Nhân Viên
+              </span>
+            </div>
+          )}
+
           {activeTab === 'dashboard' && (
             <AdminDashboardOverview
               stats={stats}
@@ -348,6 +373,13 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({
           {activeTab === 'reviews' && (
             <ReviewManagement
               reviews={reviews}
+              onRefresh={handleRefresh}
+            />
+          )}
+
+          {activeTab === 'users' && (
+            <UserManagement
+              currentUser={currentUser}
               onRefresh={handleRefresh}
             />
           )}

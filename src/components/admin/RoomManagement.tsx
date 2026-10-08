@@ -474,18 +474,72 @@ export const RoomManagement: React.FC<RoomManagementProps> = ({
                 </div>
 
                 <div>
-                  <label className="block font-semibold text-[#475569] mb-1">
-                    Giá niêm yết (VNĐ / đêm) *
-                  </label>
+                  <div className="flex items-center justify-between mb-1">
+                    <label className="block font-semibold text-[#475569]">
+                      Giá niêm yết (VNĐ / đêm) *
+                    </label>
+                    <span className="font-mono text-xs font-bold text-[#D4AF37]">
+                      {pricePerNight > 0 ? `${pricePerNight.toLocaleString('vi-VN')} đ` : '0 đ'}
+                    </span>
+                  </div>
                   <input
                     type="number"
-                    min={500000}
-                    step={100000}
+                    min={0}
+                    step={1000}
                     value={pricePerNight}
-                    onChange={(e) => setPricePerNight(Number(e.target.value))}
+                    onChange={(e) => setPricePerNight(Math.max(0, Number(e.target.value)))}
                     required
+                    placeholder="Nhập giá phòng (ví dụ: 50000 cho 50k)"
                     className="w-full px-3.5 py-2.5 bg-[#F8FAFC] border border-[#CBD5E1] rounded-xl focus:outline-none focus:border-[#0F172A]"
                   />
+                  <div className="flex items-center gap-1.5 mt-2 flex-wrap">
+                    <span className="text-[11px] text-[#64748B]">Chọn nhanh:</span>
+                    <button
+                      type="button"
+                      onClick={() => setPricePerNight(50000)}
+                      className={`px-2 py-0.5 rounded text-[11px] font-semibold border transition-colors cursor-pointer ${
+                        pricePerNight === 50000 ? 'bg-[#0F172A] text-white border-[#0F172A]' : 'bg-slate-100 hover:bg-slate-200 border-slate-300 text-slate-700'
+                      }`}
+                    >
+                      50k (50.000đ)
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setPricePerNight(200000)}
+                      className={`px-2 py-0.5 rounded text-[11px] font-semibold border transition-colors cursor-pointer ${
+                        pricePerNight === 200000 ? 'bg-[#0F172A] text-white border-[#0F172A]' : 'bg-slate-100 hover:bg-slate-200 border-slate-300 text-slate-700'
+                      }`}
+                    >
+                      200k
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setPricePerNight(500000)}
+                      className={`px-2 py-0.5 rounded text-[11px] font-semibold border transition-colors cursor-pointer ${
+                        pricePerNight === 500000 ? 'bg-[#0F172A] text-white border-[#0F172A]' : 'bg-slate-100 hover:bg-slate-200 border-slate-300 text-slate-700'
+                      }`}
+                    >
+                      500k
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setPricePerNight(1500000)}
+                      className={`px-2 py-0.5 rounded text-[11px] font-semibold border transition-colors cursor-pointer ${
+                        pricePerNight === 1500000 ? 'bg-[#0F172A] text-white border-[#0F172A]' : 'bg-slate-100 hover:bg-slate-200 border-slate-300 text-slate-700'
+                      }`}
+                    >
+                      1.5M
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setPricePerNight(2500000)}
+                      className={`px-2 py-0.5 rounded text-[11px] font-semibold border transition-colors cursor-pointer ${
+                        pricePerNight === 2500000 ? 'bg-[#0F172A] text-white border-[#0F172A]' : 'bg-slate-100 hover:bg-slate-200 border-slate-300 text-slate-700'
+                      }`}
+                    >
+                      2.5M
+                    </button>
+                  </div>
                 </div>
               </div>
 

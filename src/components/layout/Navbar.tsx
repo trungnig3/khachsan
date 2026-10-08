@@ -7,7 +7,14 @@ import {
   ChevronDown,
   LogOut,
   LogIn,
-  LayoutDashboard
+  LayoutDashboard,
+  UserPlus,
+  Menu,
+  X,
+  Utensils,
+  Tag,
+  Star,
+  BedDouble
 } from 'lucide-react';
 import { User } from '../../types/hotel';
 
@@ -19,6 +26,7 @@ interface NavbarProps {
   demoUsers: User[];
   onOpenBookingModal?: () => void;
   onOpenLoginModal?: () => void;
+  onOpenRegisterModal?: () => void;
   onLogout?: () => void;
 }
 
@@ -30,13 +38,16 @@ export const Navbar: React.FC<NavbarProps> = ({
   demoUsers,
   onOpenBookingModal,
   onOpenLoginModal,
+  onOpenRegisterModal,
   onLogout,
 }) => {
   const [showRoleMenu, setShowRoleMenu] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const handleRoleSelect = (user: User) => {
     onUserChange(user);
     setShowRoleMenu(false);
+    setMobileMenuOpen(false);
     if (user.role === 'ROLE_ADMIN' || user.role === 'ROLE_STAFF') {
       onViewChange('admin');
     } else {
@@ -46,16 +57,52 @@ export const Navbar: React.FC<NavbarProps> = ({
 
   const handleLogoutClick = () => {
     setShowRoleMenu(false);
+    setMobileMenuOpen(false);
     onLogout?.();
+  };
+
+  // Seamless navigation handler that works from ANY page (including 'my-bookings' or 'admin')
+  const handleNavigate = (target: 'rooms' | 'services' | 'promotions' | 'reviews' | 'home') => {
+    setShowRoleMenu(false);
+    setMobileMenuOpen(false);
+    if (currentView !== 'customer') {
+      onViewChange('customer');
+      setTimeout(() => {
+        if (target === 'home') {
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+        } else {
+          const el = document.getElementById(target);
+          if (el) {
+            el.scrollIntoView({ behavior: 'smooth' });
+          }
+        }
+      }, 120);
+    } else {
+      if (target === 'home') {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      } else {
+        const el = document.getElementById(target);
+        if (el) {
+          el.scrollIntoView({ behavior: 'smooth' });
+        }
+      }
+    }
   };
 
   return (
     <header className="sticky top-0 z-40 bg-[#0F172A]/95 backdrop-blur-md border-b border-[#334155]/50 text-white transition-colors">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between gap-4">
-        {/* Zone 1: Brand Title */}
+        {/* Zone 1: Brand Title & Mobile Menu Trigger */}
         <div className="flex items-center gap-3">
           <button
-            onClick={() => onViewChange('customer')}
+            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            className="md:hidden p-2 rounded-xl text-[#94A3B8] hover:text-white hover:bg-slate-800 transition-colors"
+          >
+            {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+          </button>
+
+          <button
+            onClick={() => handleNavigate('home')}
             className="text-left group flex items-center gap-2.5 cursor-pointer"
           >
             <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#D4AF37] to-[#996515] flex items-center justify-center shadow-lg shadow-amber-950/40">
@@ -72,34 +119,34 @@ export const Navbar: React.FC<NavbarProps> = ({
           </button>
         </div>
 
-        {/* Zone 2: Navigation Links */}
-        <nav className="hidden md:flex items-center gap-8 text-sm font-medium text-[#CBD5E1]">
+        {/* Zone 2: Navigation Links (Buttons that safely navigate and scroll) */}
+        <nav className="hidden md:flex items-center gap-7 text-sm font-medium text-[#CBD5E1]">
           <button
-            onClick={() => onViewChange('customer')}
+            onClick={() => handleNavigate('rooms')}
             className={`transition-colors hover:text-[#EAB308] cursor-pointer ${
               currentView === 'customer' ? 'text-[#EAB308] font-semibold' : ''
             }`}
           >
             Trang chủ & Phòng
           </button>
-          <a
-            href="#services"
-            className="transition-colors hover:text-[#EAB308]"
+          <button
+            onClick={() => handleNavigate('services')}
+            className="transition-colors hover:text-[#EAB308] cursor-pointer"
           >
             Dịch vụ & Spa
-          </a>
-          <a
-            href="#promotions"
-            className="transition-colors hover:text-[#EAB308]"
+          </button>
+          <button
+            onClick={() => handleNavigate('promotions')}
+            className="transition-colors hover:text-[#EAB308] cursor-pointer"
           >
             Ưu đãi đặc quyền
-          </a>
-          <a
-            href="#reviews"
-            className="transition-colors hover:text-[#EAB308]"
+          </button>
+          <button
+            onClick={() => handleNavigate('reviews')}
+            className="transition-colors hover:text-[#EAB308] cursor-pointer"
           >
             Đánh giá
-          </a>
+          </button>
           <button
             onClick={() => {
               if (!currentUser) {
@@ -168,6 +215,9 @@ export const Navbar: React.FC<NavbarProps> = ({
                     <span className="text-white font-bold text-xs block truncate mt-0.5">
                       {currentUser.fullName} ({currentUser.email})
                     </span>
+                    <span className="text-[10px] text-[#EAB308] font-semibold mt-0.5 block">
+                      Vai trò: {currentUser.role === 'ROLE_ADMIN' ? 'Tổng Quản Lý (Admin)' : currentUser.role === 'ROLE_STAFF' ? 'Nhân Viên Lễ Tân (Staff)' : 'Khách Hàng (Customer)'}
+                    </span>
                   </div>
 
                   {/* Navigation based on role */}
@@ -219,7 +269,9 @@ export const Navbar: React.FC<NavbarProps> = ({
                         />
                         <div className="flex-1 min-w-0">
                           <div className="truncate text-white text-[11px]">{u.fullName}</div>
-                          <div className="text-[9px] text-[#94A3B8]">{u.role}</div>
+                          <div className="text-[9px] text-[#94A3B8]">
+                            {u.role === 'ROLE_ADMIN' ? 'Admin' : u.role === 'ROLE_STAFF' ? 'Staff' : 'Customer'}
+                          </div>
                         </div>
                       </button>
                     ))}
@@ -244,13 +296,23 @@ export const Navbar: React.FC<NavbarProps> = ({
               )}
             </div>
           ) : (
-            <button
-              onClick={onOpenLoginModal}
-              className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-gradient-to-r from-[#D4AF37] to-[#B45309] text-slate-900 font-bold text-xs shadow-md hover:brightness-110 active:scale-95 transition-all cursor-pointer"
-            >
-              <LogIn className="w-4 h-4 text-slate-900" />
-              <span>Đăng nhập</span>
-            </button>
+            /* Unauthenticated: Show Login and Register buttons */
+            <div className="flex items-center gap-2">
+              <button
+                onClick={onOpenLoginModal}
+                className="flex items-center gap-1.5 px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-white font-medium text-xs border border-slate-700 transition-all cursor-pointer"
+              >
+                <LogIn className="w-3.5 h-3.5 text-[#EAB308]" />
+                <span>Đăng nhập</span>
+              </button>
+              <button
+                onClick={onOpenRegisterModal || onOpenLoginModal}
+                className="flex items-center gap-1.5 px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-xl bg-gradient-to-r from-[#D4AF37] to-[#B45309] text-slate-900 font-bold text-xs shadow-md hover:brightness-110 active:scale-95 transition-all cursor-pointer"
+              >
+                <UserPlus className="w-3.5 h-3.5 text-slate-900" />
+                <span>Đăng ký</span>
+              </button>
+            </div>
           )}
 
           {/* Book Now primary CTA */}
@@ -264,6 +326,55 @@ export const Navbar: React.FC<NavbarProps> = ({
           )}
         </div>
       </div>
+
+      {/* Mobile Drawer Menu */}
+      {mobileMenuOpen && (
+        <div className="md:hidden bg-[#0B1120] border-b border-[#334155] px-4 py-4 space-y-2 animate-in slide-in-from-top-2 text-xs">
+          <button
+            onClick={() => handleNavigate('rooms')}
+            className="w-full text-left py-2.5 px-3 rounded-lg hover:bg-slate-800 text-white flex items-center gap-2.5 font-medium"
+          >
+            <BedDouble className="w-4 h-4 text-[#D4AF37]" />
+            <span>Trang chủ & Danh mục phòng</span>
+          </button>
+          <button
+            onClick={() => handleNavigate('services')}
+            className="w-full text-left py-2.5 px-3 rounded-lg hover:bg-slate-800 text-white flex items-center gap-2.5 font-medium"
+          >
+            <Utensils className="w-4 h-4 text-[#D4AF37]" />
+            <span>Dịch vụ & Spa cao cấp</span>
+          </button>
+          <button
+            onClick={() => handleNavigate('promotions')}
+            className="w-full text-left py-2.5 px-3 rounded-lg hover:bg-slate-800 text-white flex items-center gap-2.5 font-medium"
+          >
+            <Tag className="w-4 h-4 text-[#D4AF37]" />
+            <span>Ưu đãi đặc quyền & Voucher</span>
+          </button>
+          <button
+            onClick={() => handleNavigate('reviews')}
+            className="w-full text-left py-2.5 px-3 rounded-lg hover:bg-slate-800 text-white flex items-center gap-2.5 font-medium"
+          >
+            <Star className="w-4 h-4 text-[#D4AF37]" />
+            <span>Đánh giá từ du khách</span>
+          </button>
+          <button
+            onClick={() => {
+              setMobileMenuOpen(false);
+              if (!currentUser) {
+                onOpenLoginModal?.();
+              } else {
+                onViewChange('my-bookings');
+              }
+            }}
+            className="w-full text-left py-2.5 px-3 rounded-lg hover:bg-slate-800 text-white flex items-center gap-2.5 font-medium"
+          >
+            <Calendar className="w-4 h-4 text-[#D4AF37]" />
+            <span>Lịch sử phòng đã đặt</span>
+          </button>
+        </div>
+      )}
     </header>
   );
 };
+
