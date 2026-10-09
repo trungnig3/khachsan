@@ -13,6 +13,7 @@ import { PromotionsAndReviews } from './components/customer/PromotionsAndReviews
 import { AdminLayout } from './components/admin/AdminLayout';
 import { InvoiceModal } from './components/common/InvoiceModal';
 import { LoginModal } from './components/common/LoginModal';
+import { SoaServiceHubModal } from './components/soa/SoaServiceHubModal';
 import { hotelStore, DEMO_USERS } from './services/hotelStore';
 import { Booking, Invoice, Room, User } from './types/hotel';
 
@@ -38,6 +39,7 @@ function MainApp() {
   const [detailModalRoom, setDetailModalRoom] = useState<Room | null>(null);
   const [bookingModalRoom, setBookingModalRoom] = useState<Room | null>(null);
   const [viewInvoiceModal, setViewInvoiceModal] = useState<Invoice | null>(null);
+  const [soaModalOpen, setSoaModalOpen] = useState(false);
 
   const rooms = hotelStore.getRooms();
   const roomTypes = hotelStore.getRoomTypes();
@@ -98,6 +100,7 @@ function MainApp() {
             setLoginModalMode('register');
             setLoginModalOpen(true);
           }}
+          onOpenSoaHub={() => setSoaModalOpen(true)}
           onLogout={handleLogout}
         />
       )}
@@ -299,6 +302,12 @@ function MainApp() {
         initialMode={loginModalMode}
         onClose={() => setLoginModalOpen(false)}
         onLoginSuccess={handleLoginSuccess}
+      />
+
+      {/* SOA Service Hub & Interactive API Playground Modal */}
+      <SoaServiceHubModal
+        isOpen={soaModalOpen}
+        onClose={() => setSoaModalOpen(false)}
       />
     </div>
   );

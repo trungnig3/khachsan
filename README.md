@@ -1,7 +1,18 @@
-# AURA GRAND - HỆ THỐNG QUẢN LÝ KHÁCH SẠN & ĐẶT PHÒNG TRỰC TUYẾN 5 SAO
-*(Luxury Hotel Management & Online Booking System)*
+# AURA GRAND - HỆ THỐNG QUẢN LÝ KHÁCH SẠN HƯỚNG DỊCH VỤ (SOA & REST MICROSERVICES)
+*(SOA Hotel Management System - Service-Oriented Architecture)*
 
-Hệ thống quản lý khách sạn và đặt phòng nghỉ dưỡng trực tuyến cao cấp, đáp ứng toàn diện nghiệp vụ lưu trú, buồng phòng, quầy tiếp tân, hóa đơn GTGT, kiểm soát trùng lịch phòng và bảng điều khiển SaaS hiện đại.
+Dự án được xây dựng chuyên biệt đáp ứng yêu cầu môn học **Phát triển phần mềm hướng dịch vụ (SOA)**. Hệ thống tập trung tối đa vào **Kiến trúc Hướng Dịch vụ**, chuẩn hóa Web Services RESTful API, hợp đồng OpenAPI 3.0 / WSDL XML, điều phối dịch vụ qua Enterprise Service Bus (ESB) & API Gateway, tích hợp an toàn qua OAuth2 / JWT.
+
+---
+
+## 🏛️ ĐIỂM NỔI BẬT KIẾN TRÚC HƯỚNG DỊCH VỤ (SOA HIGHLIGHTS)
+
+1. **Trung Tâm Dịch Vụ SOA (SOA Service Hub & API Playground)**:
+   - Tích hợp trực tiếp trên giao diện web (Bấm vào nút **"SOA Services"** trên Navbar).
+   - Cho phép giáo viên và sinh viên xem **Mô hình Kiến trúc SOA Topology**, kiểm thử **Live API Playground** với dữ liệu JSON thực tế, theo dõi thời gian phản hồi (latency), và xem chuỗi tích hợp đa dịch vụ (**Service Orchestration Flow**).
+   - Tự động xuất tệp `OpenAPI_3.0_SOA_Hotel_Services.json`, `Postman_Collection_SOA_Hotel.json`, và `HotelServiceContract.wsdl` chỉ bằng 1 cú nhấp chuột!
+
+2. **Chi Tiết Báo Cáo SOA**: Xem tệp [`SOA_ARCHITECTURE.md`](./SOA_ARCHITECTURE.md) trong thư mục gốc dự án.
 
 ---
 

@@ -14,7 +14,8 @@ import {
   Utensils,
   Tag,
   Star,
-  BedDouble
+  BedDouble,
+  Cpu
 } from 'lucide-react';
 import { User } from '../../types/hotel';
 
@@ -27,6 +28,7 @@ interface NavbarProps {
   onOpenBookingModal?: () => void;
   onOpenLoginModal?: () => void;
   onOpenRegisterModal?: () => void;
+  onOpenSoaHub?: () => void;
   onLogout?: () => void;
 }
 
@@ -39,6 +41,7 @@ export const Navbar: React.FC<NavbarProps> = ({
   onOpenBookingModal,
   onOpenLoginModal,
   onOpenRegisterModal,
+  onOpenSoaHub,
   onLogout,
 }) => {
   const [showRoleMenu, setShowRoleMenu] = useState(false);
@@ -162,6 +165,18 @@ export const Navbar: React.FC<NavbarProps> = ({
             <Calendar className="w-4 h-4" />
             <span>Phòng đã đặt</span>
           </button>
+
+          {/* SOA Service Hub Button */}
+          {onOpenSoaHub && (
+            <button
+              onClick={onOpenSoaHub}
+              className="px-2.5 py-1 rounded-lg bg-amber-500/15 hover:bg-amber-500/25 border border-amber-500/30 text-amber-300 font-bold text-xs flex items-center gap-1.5 transition-all cursor-pointer shadow-sm"
+              title="Mở Trung tâm Dịch vụ SOA & Kiểm thử API"
+            >
+              <Cpu className="w-3.5 h-3.5 text-amber-400 animate-pulse" />
+              <span>SOA Services</span>
+            </button>
+          )}
         </nav>
 
         {/* Zone 3: Actions & Auth */}
@@ -372,6 +387,18 @@ export const Navbar: React.FC<NavbarProps> = ({
             <Calendar className="w-4 h-4 text-[#D4AF37]" />
             <span>Lịch sử phòng đã đặt</span>
           </button>
+          {onOpenSoaHub && (
+            <button
+              onClick={() => {
+                setMobileMenuOpen(false);
+                onOpenSoaHub();
+              }}
+              className="w-full text-left py-2.5 px-3 rounded-lg bg-amber-500/10 border border-amber-500/30 text-amber-300 flex items-center gap-2.5 font-semibold"
+            >
+              <Cpu className="w-4 h-4 text-amber-400 animate-pulse" />
+              <span>SOA Services (Trung tâm Hướng Dịch Vụ)</span>
+            </button>
+          )}
         </div>
       )}
     </header>
